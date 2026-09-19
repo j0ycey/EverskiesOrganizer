@@ -15,6 +15,8 @@ The easiest way to use the organizer is the Windows release:
 
 No Visual Studio, .NET SDK, or separate .NET installation is required for the published Windows version.
 
+The current release version is shown in the **Help** dialog inside the app.
+
 Windows may show a SmartScreen warning because the app is not signed by a commercial publisher. If you downloaded the release from this repository, choose **More info** and then **Run anyway**.
 
 ## What it does
@@ -24,7 +26,7 @@ Windows may show a SmartScreen warning because the app is not signed by a commer
 - Assign PNGs to items by drag and drop
 - Create and edit variations
 - Assign `Minus`, `Plus`, or `All` assets
-- Add Variation and color tags
+- Add variation tags
 - Choose an item preview
 - Find possible matching PNG groups with Suggestions
 - Save and reopen organizer projects
@@ -38,7 +40,7 @@ Windows may show a SmartScreen warning because the app is not signed by a commer
 3. Give the item a name and category.
 4. Add variations manually.
 5. Drag PNGs onto a variation or directly onto its `Minus`, `Plus`, or `All` slot.
-6. Select a category and choose ist color tags.
+6. Select a variation and choose its tags.
 7. Set the item preview from the item's asset list.
 8. Use **Validate & Export** when the item is ready.
 
@@ -91,7 +93,7 @@ Open the reported item and check that it has:
 
 ### Suggestions show too many or too few matches
 
-Suggestions are based on visible PNG shape and color heuristics. They are only a starting point. Remove individual assets from the Suggestions window and review the remaining groups before accepting them.
+Suggestions are based on visible PNG shape and color heuristics. They are only a starting point. Remove individual cards from the Suggestions window and review the remaining groups before accepting them.
 
 ### The interface looks wrong after an update
 

@@ -7,5 +7,6 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 </Project>

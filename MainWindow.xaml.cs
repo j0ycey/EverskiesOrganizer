@@ -8,6 +8,7 @@ using WinForms = System.Windows.Forms;
 
 namespace EverskiesOrganizer;
 public partial class MainWindow : Window {
+    const string AppVersion = "1.0.1";
     ProjectData Project = new(); OrganizerItem? CurrentItem;
 Variation? CurrentVariation;
 bool loading;
@@ -99,6 +100,7 @@ RenderVariations(); TagsConfig.Text=string.Join(Environment.NewLine,Project.Sett
     void ItemDetails_Changed(object s,RoutedEventArgs e) { if(loading||CurrentItem is null)return;CurrentItem.Name=ItemName.Text;CurrentItem.SubCategory=SubCategoryBox.SelectedItem?.ToString()??"";CurrentItem.Category=string.Join(" → ",new[]{CurrentItem.MainCategory,CurrentItem.SubCategory}.Where(x=>!string.IsNullOrWhiteSpace(x)));ItemsList.Items.Refresh(); }
     void SetPreview_Click(object s,RoutedEventArgs e)
     {
+        CurrentItem ??= ItemsList.SelectedItem as OrganizerItem;
         var element = s as FrameworkElement;
         var asset = element?.Tag as ImageAsset ?? element?.DataContext as ImageAsset;
         if (CurrentItem is null || asset is null)
@@ -115,10 +117,13 @@ RenderVariations(); TagsConfig.Text=string.Join(Environment.NewLine,Project.Sett
     }
 void RemoveItemAsset_Click(object s, RoutedEventArgs e)
 {
+    CurrentItem ??= ItemsList.SelectedItem as OrganizerItem;
     if (CurrentItem is null)
         return;
 
-    if ((s as FrameworkElement)?.Tag is not ImageAsset asset)
+    var element = s as FrameworkElement;
+    var asset = element?.Tag as ImageAsset ?? element?.DataContext as ImageAsset;
+    if (asset is null)
         return;
 
     if (CurrentItem.PreviewAssetId == asset.Id)
@@ -144,6 +149,7 @@ void RemoveItemAsset_Click(object s, RoutedEventArgs e)
 
     RefreshItemAssets();
     RefreshImportedAssets();
+    RenderVariations();
     ItemsList.Items.Refresh();
 }
 void NewVariation_Click(object s, RoutedEventArgs e)
@@ -383,18 +389,20 @@ void Item_Drop(object s, System.Windows.DragEventArgs e)
     }
 
     if (e.Data.GetData(typeof(List<ImageAsset>)) is not List<ImageAsset> assets ||
-        assets.Count != 1)
+        assets.Count == 0)
         return;
 
-    var asset = assets[0];
-    if (!ItemContainsAsset(target, asset.Id))
-        target.UnassignedAssetIds.Add(asset.Id);
+    foreach (var asset in assets)
+        if (!ItemContainsAsset(target, asset.Id))
+            target.UnassignedAssetIds.Add(asset.Id);
 
     CurrentItem = target;
     ItemsList.SelectedItem = target;
     LoadItem();
     RefreshImportedAssets();
-    StatusText.Text = "PNG added to the item.";
+    StatusText.Text = assets.Count == 1
+        ? "PNG added to the item."
+        : $"{assets.Count} PNGs added to the item.";
 }
 
 void Item_DragOver(object s, System.Windows.DragEventArgs e)
@@ -407,7 +415,7 @@ void Item_DragOver(object s, System.Windows.DragEventArgs e)
     }
     else if (((FrameworkElement)s).DataContext is OrganizerItem &&
              e.Data.GetData(typeof(List<ImageAsset>)) is List<ImageAsset> assets &&
-             assets.Count == 1)
+             assets.Count > 0)
     {
         e.Effects = System.Windows.DragDropEffects.Move;
     }
@@ -415,6 +423,42 @@ void Item_DragOver(object s, System.Windows.DragEventArgs e)
         e.Effects = System.Windows.DragDropEffects.None;
 
     e.Handled = true;
+}
+
+void ItemsList_DragOver(object s, System.Windows.DragEventArgs e)
+{
+    e.Effects = e.Data.GetData(typeof(List<ImageAsset>)) is List<ImageAsset> assets &&
+                assets.Count > 0
+        ? System.Windows.DragDropEffects.Move
+        : System.Windows.DragDropEffects.None;
+    e.Handled = true;
+}
+
+void ItemsList_Drop(object s, System.Windows.DragEventArgs e)
+{
+    e.Handled = true;
+    if (e.Data.GetData(typeof(List<ImageAsset>)) is not List<ImageAsset> assets ||
+        assets.Count == 0)
+        return;
+
+    var item = new OrganizerItem
+    {
+        Name = "New item",
+        PreviewAssetId = assets[0].Id,
+        PreviewThumbnail = assets[0].Thumbnail
+    };
+
+    foreach (var asset in assets)
+        item.UnassignedAssetIds.Add(asset.Id);
+
+    Project.Items.Add(item);
+    CurrentItem = item;
+    ItemsList.SelectedItem = item;
+    LoadItem();
+    RefreshImportedAssets();
+    StatusText.Text = assets.Count == 1
+        ? "New item created from the PNG."
+        : $"New item created from {assets.Count} PNGs.";
 }
 
 void ItemsList_MouseMove(object s, System.Windows.Input.MouseEventArgs e)
@@ -609,12 +653,13 @@ void AssetsList_MouseMove(object s, System.Windows.Input.MouseEventArgs e)
     if (e.LeftButton != System.Windows.Input.MouseButtonState.Pressed)
         return;
 
+    if (IsWithinScrollBar(e.OriginalSource as DependencyObject))
+        return;
+
     var selected = SelectedAssets();
 
-    if (selected.Count != 1)
+    if (selected.Count == 0)
     {
-        if (selected.Count > 1)
-            StatusText.Text = "Bitte genau ein PNG auswählen, um es zu einer Variation zu ziehen.";
         return;
     }
 
@@ -629,14 +674,15 @@ void ItemAssetsList_MouseMove(object s, System.Windows.Input.MouseEventArgs e)
     if (e.LeftButton != System.Windows.Input.MouseButtonState.Pressed)
         return;
 
+    if (IsWithinScrollBar(e.OriginalSource as DependencyObject))
+        return;
+
     var selected = UnassignedList.SelectedItems
         .Cast<ImageAsset>()
         .ToList();
 
-    if (selected.Count != 1)
+    if (selected.Count == 0)
     {
-        if (selected.Count > 1)
-            StatusText.Text = "Bitte genau ein PNG auswählen, um es zu einer Variation zu ziehen.";
         return;
     }
 
@@ -646,9 +692,21 @@ void ItemAssetsList_MouseMove(object s, System.Windows.Input.MouseEventArgs e)
         System.Windows.DragDropEffects.Move
     );
 }
+static bool IsWithinScrollBar(DependencyObject? source)
+{
+    while (source is not null)
+    {
+        if (source is System.Windows.Controls.Primitives.ScrollBar)
+            return true;
+
+        source = VisualTreeHelper.GetParent(source);
+    }
+
+    return false;
+}
 void ItemAssetList_DragOver(object s, System.Windows.DragEventArgs e)
 {
-    e.Effects = e.Data.GetData(typeof(List<ImageAsset>)) is List<ImageAsset> assets && assets.Count == 1
+    e.Effects = e.Data.GetData(typeof(List<ImageAsset>)) is List<ImageAsset> assets && assets.Count > 0
         ? System.Windows.DragDropEffects.Move
         : System.Windows.DragDropEffects.None;
     e.Handled = true;
@@ -658,11 +716,12 @@ void ItemAssetList_Drop(object s, System.Windows.DragEventArgs e)
     e.Handled = true;
     if (CurrentItem is null ||
         e.Data.GetData(typeof(List<ImageAsset>)) is not List<ImageAsset> assets ||
-        assets.Count != 1)
+        assets.Count == 0)
         return;
 
-    if (!ItemContainsAsset(CurrentItem, assets[0].Id))
-        CurrentItem.UnassignedAssetIds.Add(assets[0].Id);
+    foreach (var asset in assets)
+        if (!ItemContainsAsset(CurrentItem, asset.Id))
+            CurrentItem.UnassignedAssetIds.Add(asset.Id);
     RefreshItemAssets();
     RefreshImportedAssets();
     ItemsList.Items.Refresh();
@@ -693,7 +752,7 @@ void ItemAssetList_Drop(object s, System.Windows.DragEventArgs e)
         FilenameTemplateBox.Text = Project.Settings.FilenameTemplate;
         ApplySettingsFields();
     }
-    void Help_Click(object s,RoutedEventArgs e)=>System.Windows.MessageBox.Show("1. Import a folder of PNGs.\n2. Select PNGs and create an item, or drag them directly onto an existing item.\n3. Create variations manually and assign Minus, Plus, or All by dragging one PNG onto the desired target.\n4. Select a variation to edit its tags.\n5. Validate before exporting. Export creates a tagged assets folder containing item previews and each item's variation PNGs.\n\nSuggestions compare visible alpha shapes and colours; accepting a suggestion only adds free assets to a new item. It never creates a variation automatically.","How this works");
+    void Help_Click(object s,RoutedEventArgs e)=>System.Windows.MessageBox.Show($"Everskies Studio Organizer version {AppVersion}\n\n1. Import a folder of PNGs.\n2. Select PNGs and create an item, or drag them directly onto an existing item or an empty area in the item overview.\n3. Create variations manually and assign Minus, Plus, or All by dragging one PNG onto the desired target.\n4. Select a variation to edit its tags.\n5. Validate before exporting. Export creates a tagged assets folder containing item previews and each item's variation PNGs.\n\nSuggestions compare visible alpha shapes and colours; accepting a suggestion only adds free assets to a new item. It never creates a variation automatically.","How this works");
     void Settings_Click(object s,RoutedEventArgs e)
     {
         if (SettingsExpander.Parent is not System.Windows.Controls.Panel parent)
