@@ -1,0 +1,889 @@
+<Window x:Class="EverskiesOrganizer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Everskies Studio Organizer"
+        Width="1580"
+        Height="920"
+        MinWidth="1120"
+        MinHeight="700"
+        AllowDrop="True"
+        Drop="Window_Drop"
+        Background="{DynamicResource AppBackgroundBrush}">
+
+    <Window.Resources>
+        <SolidColorBrush x:Key="AppPanelBrush" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="AppBackgroundBrush" Color="#F1F2F7"/>
+        <SolidColorBrush x:Key="AppSurfaceBrush" Color="#E5E0F0"/>
+        <SolidColorBrush x:Key="AppTextBrush" Color="#111111"/>
+        <SolidColorBrush x:Key="AppBorderBrush" Color="#B5BBC4"/>
+        <SolidColorBrush x:Key="AppCardBrush" Color="#E9EDF1"/>
+        <SolidColorBrush x:Key="AppSlotBrush" Color="#F4F1F7"/>
+        <SolidColorBrush x:Key="AppThumbnailBrush" Color="#EEF0F3"/>
+        <SolidColorBrush x:Key="AppAccentBrush" Color="#927AB4"/>
+        <SolidColorBrush x:Key="AppSuccessBrush" Color="#58B88A"/>
+        <Style TargetType="{x:Type Button}">
+            <Setter Property="Background" Value="{DynamicResource AppSurfaceBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AppBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="{x:Type ListBox}">
+            <Setter Property="Background" Value="{DynamicResource AppPanelBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AppBorderBrush}"/>
+        </Style>
+        <Style TargetType="{x:Type CheckBox}">
+            <Setter Property="Background" Value="{DynamicResource AppPanelBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AppBorderBrush}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type CheckBox}">
+                        <StackPanel Orientation="Horizontal">
+                            <Border x:Name="CheckBorder"
+                                    Width="16"
+                                    Height="16"
+                                    Margin="0,0,5,0"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="3">
+                                <Path x:Name="CheckMark"
+                                      Data="M 3,8 L 7,12 L 14,4"
+                                      Stroke="{DynamicResource AppAccentBrush}"
+                                      StrokeThickness="2"
+                                      Visibility="Collapsed"/>
+                            </Border>
+                            <ContentPresenter VerticalAlignment="Center"
+                                              Content="{TemplateBinding Content}"
+                                              ContentTemplate="{TemplateBinding ContentTemplate}"/>
+                        </StackPanel>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="CheckMark" Property="Visibility" Value="Visible"/>
+                                <Setter TargetName="CheckBorder" Property="Background" Value="{DynamicResource AppSurfaceBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value=".55"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="{x:Type ListBoxItem}">
+            <Setter Property="Background" Value="{DynamicResource AppPanelBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}"/>
+        </Style>
+        <Style TargetType="{x:Type GroupBox}">
+            <Setter Property="Background" Value="{DynamicResource AppPanelBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type GroupBox}">
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="10"
+                                Padding="{TemplateBinding Padding}">
+                            <DockPanel>
+                                <ContentPresenter DockPanel.Dock="Top"
+                                                  ContentSource="Header"
+                                                  Margin="2,0,2,8"/>
+                                <ContentPresenter ContentSource="Content"/>
+                            </DockPanel>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="{x:Type TextBox}">
+            <Setter Property="Background" Value="{DynamicResource AppPanelBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AppBorderBrush}"/>
+        </Style>
+        <Style TargetType="{x:Type ComboBox}">
+            <Setter Property="Background" Value="{DynamicResource AppPanelBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AppBorderBrush}"/>
+        </Style>
+        <Style TargetType="{x:Type ComboBoxItem}">
+            <Setter Property="Background" Value="{DynamicResource AppPanelBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}"/>
+        </Style>
+        <Style TargetType="{x:Type ScrollViewer}">
+            <Setter Property="Background" Value="{DynamicResource AppPanelBrush}"/>
+        </Style>
+        <Style TargetType="{x:Type Expander}">
+            <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource AppSurfaceBrush}"/>
+        </Style>
+        <Style TargetType="{x:Type ScrollBar}">
+            <Setter Property="Background" Value="{DynamicResource AppSurfaceBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource AppAccentBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AppBorderBrush}"/>
+        </Style>
+        <Style TargetType="{x:Type GridSplitter}">
+            <Setter Property="Background" Value="{DynamicResource AppBackgroundBrush}"/>
+        </Style>
+        <Style TargetType="{x:Type StatusBar}">
+            <Setter Property="Background" Value="{DynamicResource AppSurfaceBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+        <Style TargetType="{x:Type TextBlock}">
+            <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}"/>
+        </Style>
+
+        <!-- PNG thumbnail -->
+<DataTemplate x:Key="ThumbTemplate">
+    <Border Margin="4"
+            Padding="5"
+            BorderBrush="{DynamicResource AppBorderBrush}"
+            BorderThickness="1"
+            CornerRadius="6"
+            Width="126">
+
+        <StackPanel>
+
+            <Border Height="86"
+                    Background="{DynamicResource AppCardBrush}">
+
+                <Image Source="{Binding Thumbnail}"
+                       Stretch="Uniform"/>
+
+            </Border>
+
+            <TextBlock Text="{Binding DisplayName}"
+                       FontSize="10"
+                       TextTrimming="CharacterEllipsis"
+                       Margin="0,5,0,0"/>
+
+        </StackPanel>
+
+    </Border>
+</DataTemplate>
+
+
+        <!-- Variation -->
+<DataTemplate x:Key="VariationTemplate">
+    <Border BorderBrush="{DynamicResource AppBorderBrush}"
+            BorderThickness="1"
+            CornerRadius="6"
+            Padding="8"
+            Margin="4,3"
+            AllowDrop="True"
+            DragOver="Variation_DragOver"
+            Drop="Variation_Drop">
+
+        <StackPanel>
+
+            <DockPanel Margin="0,0,0,6">
+                <TextBlock Text="{Binding Label}"
+                           FontWeight="SemiBold"
+                           FontSize="13"/>
+                <Button Content="Remove"
+                        DockPanel.Dock="Right"
+                        Tag="{Binding}"
+                        Click="RemoveVariation_Click"
+                        Padding="5,1"/>
+            </DockPanel>
+
+            <!-- Minus -->
+            <Border Background="{DynamicResource AppSlotBrush}"
+                    CornerRadius="4"
+                    Padding="5"
+                    Margin="0,2"
+                    AllowDrop="True"
+                    DragOver="VariationSlot_DragOver"
+                    Drop="VariationSlot_Drop"
+                    Tag="minus">
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="65"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Border Width="60"
+                            Height="60"
+                            Background="{DynamicResource AppThumbnailBrush}">
+                        <Image Source="{Binding MinusThumbnail}"
+                               Stretch="Uniform"/>
+                    </Border>
+
+                    <StackPanel Grid.Column="1"
+                                Margin="10,0,0,0"
+                                VerticalAlignment="Center">
+
+                        <TextBlock Text="Minus"
+                                   FontWeight="SemiBold"/>
+
+                        <TextBlock Text="PNG"
+                                   FontSize="10"
+                                   Opacity=".6"/>
+                        <Button Content="Clear"
+                                Tag="minus"
+                                Click="ClearVariationSlot_Click"
+                                HorizontalAlignment="Left"
+                                Padding="4,0"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Plus -->
+            <Border Background="{DynamicResource AppSlotBrush}"
+                    CornerRadius="4"
+                    Padding="5"
+                    Margin="0,2"
+                    AllowDrop="True"
+                    DragOver="VariationSlot_DragOver"
+                    Drop="VariationSlot_Drop"
+                    Tag="plus">
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="65"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Border Width="60"
+                            Height="60"
+                            Background="{DynamicResource AppThumbnailBrush}">
+                        <Image Source="{Binding PlusThumbnail}"
+                               Stretch="Uniform"/>
+                    </Border>
+
+                    <StackPanel Grid.Column="1"
+                                Margin="10,0,0,0"
+                                VerticalAlignment="Center">
+
+                        <TextBlock Text="Plus"
+                                   FontWeight="SemiBold"/>
+
+                        <TextBlock Text="PNG"
+                                   FontSize="10"
+                                   Opacity=".6"/>
+                        <Button Content="Clear"
+                                Tag="plus"
+                                Click="ClearVariationSlot_Click"
+                                HorizontalAlignment="Left"
+                                Padding="4,0"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- All -->
+            <Border Background="{DynamicResource AppSlotBrush}"
+                    CornerRadius="4"
+                    Padding="5"
+                    Margin="0,2"
+                    AllowDrop="True"
+                    DragOver="VariationSlot_DragOver"
+                    Drop="VariationSlot_Drop"
+                    Tag="all">
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="65"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Border Width="60"
+                            Height="60"
+                            Background="{DynamicResource AppThumbnailBrush}">
+                        <Image Source="{Binding AllThumbnail}"
+                               Stretch="Uniform"/>
+                    </Border>
+
+                    <StackPanel Grid.Column="1"
+                                Margin="10,0,0,0"
+                                VerticalAlignment="Center">
+
+                        <TextBlock Text="All"
+                                   FontWeight="SemiBold"/>
+
+                        <TextBlock Text="PNG"
+                                   FontSize="10"
+                                   Opacity=".6"/>
+                        <Button Content="Clear"
+                                Tag="all"
+                                Click="ClearVariationSlot_Click"
+                                HorizontalAlignment="Left"
+                                Padding="4,0"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Tags -->
+            <TextBlock Text="{Binding TagsText, StringFormat=Tags: {0}}"
+                       FontSize="10"
+                       TextWrapping="Wrap"
+                       Margin="2,5,2,0"
+                       Opacity=".7"/>
+
+        </StackPanel>
+    </Border>
+</DataTemplate>
+
+<!-- PNG thumbnail for selected item -->
+<DataTemplate x:Key="ItemThumbTemplate">
+    <Border Margin="4"
+            Padding="5"
+            BorderBrush="{DynamicResource AppBorderBrush}"
+            BorderThickness="1"
+            CornerRadius="6"
+            Width="126"
+            Opacity="{Binding ItemOpacity}">
+
+        <StackPanel>
+
+            <Grid Height="86"
+                  Background="{DynamicResource AppCardBrush}">
+
+                <Image Source="{Binding Thumbnail}"
+                       Stretch="Uniform"/>
+
+                <StackPanel Orientation="Horizontal"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Top">
+                <Button Content="Set preview"
+                        Padding="4,1"
+                        IsEnabled="True"
+                        Tag="{Binding}"
+                        Click="SetPreview_Click"
+                        ToolTip="Use this PNG as the item preview"/>
+                <Button Content="×"
+                Width="20"
+                Height="20"
+                        Padding="0"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Top"
+                        Margin="0,2,2,0"
+                        Tag="{Binding}"
+                        Click="RemoveItemAsset_Click"
+                        FontSize="14"
+                        FontWeight="Bold"
+                        ToolTip="Remove from item"/>
+                        </StackPanel>
+
+            </Grid>
+
+            <TextBlock Text="{Binding DisplayName}"
+                       FontSize="10"
+                       TextTrimming="CharacterEllipsis"
+                       Margin="0,5,0,0"/>
+
+        </StackPanel>
+
+    </Border>
+</DataTemplate>
+
+        <!-- Item -->
+        <DataTemplate x:Key="ItemTemplate">
+
+            <Border BorderBrush="{DynamicResource AppBorderBrush}"
+                    BorderThickness="0,0,0,1"
+                    Padding="4"
+                    Margin="0,0,0,5">
+
+                <Expander IsExpanded="True">
+
+                    <Expander.Header>
+
+                        <Grid>
+
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="48"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Item preview -->
+                            <Border Width="42"
+                                    Height="42"
+                                    Background="{DynamicResource AppCardBrush}"
+                                    CornerRadius="4">
+
+                                <Image Source="{Binding PreviewThumbnail}"
+                                       Stretch="Uniform"/>
+                            </Border>
+
+                            <StackPanel Grid.Column="1"
+                                        Margin="8,0,0,0"
+                                        VerticalAlignment="Center">
+
+                                <TextBlock Text="{Binding Name}"
+                                           FontWeight="Bold"
+                                           FontSize="14"/>
+
+                                <TextBlock Text="{Binding Category}"
+                                           FontSize="10"
+                                           Opacity=".65"/>
+
+                            </StackPanel>
+
+                        </Grid>
+
+                    </Expander.Header>
+
+                </Expander>
+
+            </Border>
+
+        </DataTemplate>
+
+    </Window.Resources>
+
+
+    <DockPanel>
+
+        <!-- TOP BAR -->
+        <Border DockPanel.Dock="Top"
+                Background="{DynamicResource AppAccentBrush}"
+                Padding="14,9">
+
+            <Grid>
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+
+                <StackPanel Orientation="Horizontal">
+
+                    <TextBlock Text="EVERSKIES STUDIO ORGANIZER"
+                               Foreground="White"
+                               FontSize="20"
+                               FontWeight="Bold"
+                               VerticalAlignment="Center"
+                               Margin="0,0,20,0"/>
+
+                    <Button Content="Import Folder"
+                            Click="Import_Click"/>
+
+                    <Button Content="Save"
+                            Click="Save_Click"/>
+
+                    <Button Content="Open"
+                            Click="Open_Click"/>
+
+                    <Button Content="Suggestions"
+                            Click="Suggestions_Click"/>
+
+                    <Button Content="Validate &amp; Export"
+                            Click="Export_Click"
+                            Background="#8FB9D9"/>
+
+
+                    <Button Content="Help"
+                            Click="Help_Click"
+                            Background="Transparent"
+                            Foreground="White"
+                            BorderThickness="0"
+                            Margin="8,0,0,0"/>
+
+                </StackPanel>
+
+
+                <Button Grid.Column="1"
+                        Content="☀ / 🌙"
+                        Click="Theme_Click"/>
+
+            </Grid>
+
+        </Border>
+
+
+        <!-- STATUS -->
+        <StatusBar DockPanel.Dock="Bottom">
+
+            <TextBlock x:Name="StatusText"
+                       Text="Import a folder of exported PNGs to begin."/>
+
+        </StatusBar>
+
+
+        <!-- MAIN AREA -->
+        <Grid Margin="12">
+
+            <Grid.ColumnDefinitions>
+
+                <ColumnDefinition Width="2.4*"/>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="4.2*"/>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="2.6*"/>
+
+            </Grid.ColumnDefinitions>
+
+
+            <!-- LEFT: IMPORTED PNGs -->
+ <GroupBox Header="Imported PNGs — Ctrl / Shift for multiple" Grid.Column="0">
+    <DockPanel>
+
+        <!-- Buttons stay fixed at the bottom -->
+        <StackPanel DockPanel.Dock="Bottom" Margin="6">
+            <Button Content="Create item from selected"
+                    Click="CreateItem_Click"/>
+
+            <TextBlock Text="Drag selected PNGs to a group or variation in Overview."
+                       FontSize="10"
+                       Opacity=".7"
+                       TextWrapping="Wrap"
+                       Margin="0,6,0,0"/>
+        </StackPanel>
+
+        <!-- Scrollable PNG grid -->
+        <ListBox x:Name="AssetsList"
+                 ItemsSource="{Binding Assets}"
+                 ItemTemplate="{StaticResource ThumbTemplate}"
+                 SelectionMode="Extended"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                 ScrollViewer.VerticalScrollBarVisibility="Auto"
+                 ScrollViewer.CanContentScroll="True"
+                 PreviewMouseMove="AssetsList_MouseMove">
+
+            <ListBox.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <UniformGrid Columns="3"/>
+                </ItemsPanelTemplate>
+            </ListBox.ItemsPanel>
+
+        </ListBox>
+
+    </DockPanel>
+</GroupBox>
+
+
+            <GridSplitter Grid.Column="1"
+                          Width="5"
+                          HorizontalAlignment="Stretch"
+                          ResizeDirection="Columns"
+                          ShowsPreview="True"/>
+
+
+            <!-- CENTER: LAYER OVERVIEW -->
+ <GroupBox Header="Overview" Grid.Column="2">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid Margin="8">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="260" MinHeight="180"/>
+                <RowDefinition Height="6"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- ITEM -->
+            <Expander Grid.Row="0" Header="Items" IsExpanded="True" Margin="0,0,0,8">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <DockPanel Grid.Row="0" Margin="0,0,0,6">
+                        <TextBlock Text="Items"
+                                   FontSize="16"
+                                   FontWeight="Bold"
+                                   VerticalAlignment="Center"/>
+
+                        <Button DockPanel.Dock="Right"
+                                Content="+ Item"
+                                Click="NewItem_Click"/>
+                    </DockPanel>
+
+                    <ListBox Grid.Row="1" x:Name="ItemsList"
+                             ItemsSource="{Binding Items}"
+                             SelectionChanged="Item_Changed"
+                             ScrollViewer.VerticalScrollBarVisibility="Auto"
+                             ScrollViewer.CanContentScroll="True"
+                             PreviewMouseWheel="ItemsList_PreviewMouseWheel"
+                             PreviewMouseMove="ItemsList_MouseMove">
+
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+
+                                <Border BorderBrush="{DynamicResource AppBorderBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="6"
+                                        Margin="0,3"
+                                        Padding="6"
+                                        AllowDrop="True"
+                                        DragOver="Item_DragOver"
+                                        Drop="Item_Drop">
+
+                                    <StackPanel>
+
+                                        <!-- ITEM HEADER -->
+                                        <DockPanel>
+
+                                            <Image Source="{Binding PreviewThumbnail}"
+                                                   Width="42"
+                                                   Height="42"
+                                                   Stretch="Uniform"
+                                                   Margin="0,0,8,0"/>
+
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding Name}"
+                                                           FontWeight="Bold"/>
+
+                                                <TextBlock Text="{Binding Category}"
+                                                           FontSize="10"
+                                                           Opacity=".7"/>
+                                            </StackPanel>
+
+                                        </DockPanel>
+
+                                    </StackPanel>
+
+                                </Border>
+
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+
+                    </ListBox>
+
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,5,0,0">
+                        <Button Content="Set item preview"
+                                Click="SetPreview_Click"
+                                Margin="0,0,5,0"/>
+                        <Button Content="Remove selected item (keeps PNGs)"
+                                Click="RemoveItem_Click"/>
+                    </StackPanel>
+
+                </Grid>
+            </Expander>
+
+            <GridSplitter Grid.Row="1"
+                          Height="6"
+                          HorizontalAlignment="Stretch"
+                          VerticalAlignment="Stretch"
+                          ResizeDirection="Rows"
+                          ShowsPreview="True"/>
+
+        <StackPanel Grid.Row="2">
+        <!-- ITEM ASSETS -->
+        <TextBlock Text="PNG assets for this item — assigned assets are dimmed"
+                   FontWeight="Bold"
+                   Margin="0,0,0,3"/>
+
+        <TextBlock Text="Free assets can be dragged onto a variation slot. Assigned assets remain visible but dimmed."
+                   FontSize="10"
+                   Opacity=".7"
+                   TextWrapping="Wrap"
+                   Margin="0,0,0,5"/>
+
+        <ListBox x:Name="UnassignedList"
+                 ItemTemplate="{StaticResource ItemThumbTemplate}"
+                 SelectionMode="Extended"
+                 Height="180"
+                 AllowDrop="True"
+                 DragOver="ItemAssetList_DragOver"
+                 Drop="ItemAssetList_Drop"
+                 PreviewMouseMove="ItemAssetsList_MouseMove"
+                 ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                 ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                 ScrollViewer.CanContentScroll="False">
+            <ListBox.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <WrapPanel HorizontalAlignment="Left"/>
+                </ItemsPanelTemplate>
+            </ListBox.ItemsPanel>
+        </ListBox>
+
+            <!-- VARIATIONS -->
+<Expander Header="Variations"
+          IsExpanded="True"
+          Margin="0,0,0,8">
+
+    <StackPanel>
+
+        <DockPanel Margin="0,0,0,6">
+
+            <TextBlock Text="Variations / Recolors"
+                       FontWeight="Bold"
+                       VerticalAlignment="Center"/>
+
+            <Button DockPanel.Dock="Right"
+                    Content="+ Variation"
+                    Click="NewVariation_Click"/>
+
+        </DockPanel>
+
+        <TextBlock Text="Drop onto a slot for direct assignment, or onto a variation for Minus, then Plus."
+                   FontSize="10"
+                   Opacity=".7"
+                   TextWrapping="Wrap"
+                   Margin="0,0,0,6"/>
+
+
+        <!-- SELECTED VARIATION -->
+        <Border BorderBrush="{DynamicResource AppBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="6"
+                Padding="8"
+                Margin="0,8,0,0">
+
+            <StackPanel>
+
+                <TextBlock Text="Selected variation"
+                           FontWeight="Bold"
+                           Margin="0,0,0,5"/>
+
+                <TextBlock Text="{Binding CurrentVariation.Label}"
+           FontSize="12"
+           Margin="0,0,0,6"/>
+
+
+                <ListBox x:Name="VariationsList"
+                         ItemTemplate="{StaticResource VariationTemplate}"
+                         SelectionChanged="Variation_Changed"
+                         AllowDrop="True"
+                         MinHeight="150">
+
+                    <ListBox.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel/>
+                        </ItemsPanelTemplate>
+                    </ListBox.ItemsPanel>
+
+                </ListBox>
+
+            </StackPanel>
+
+        </Border>
+
+
+    </StackPanel>
+
+        </Expander>
+
+        </StackPanel>
+        </Grid>
+    </ScrollViewer>
+</GroupBox>
+
+
+            <GridSplitter Grid.Column="3"
+                          Width="5"
+                          HorizontalAlignment="Stretch"
+                          ResizeDirection="Columns"
+                          ShowsPreview="True"/>
+
+
+            <!-- RIGHT: EDITOR -->
+            <GroupBox Header="Tag editor"
+                      Grid.Column="4">
+                <DockPanel>
+                    <Button DockPanel.Dock="Bottom"
+                            Content="Settings"
+                            Click="Settings_Click"
+                            HorizontalAlignment="Left"
+                            Margin="10,0,10,10"/>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+
+                    <StackPanel x:Name="EditorPanel"
+                                IsEnabled="False"
+                                Margin="10">
+
+
+                        <TextBlock Text="Item name"
+                                   FontWeight="Bold"/>
+
+                        <TextBox x:Name="ItemName"
+                                 TextChanged="ItemDetails_Changed"/>
+
+
+                        <TextBlock Text="Category *"
+                                   Margin="0,9,0,0"/>
+
+                        <ComboBox x:Name="MainCategoryBox"
+                                  SelectionChanged="MainCategory_Changed"/>
+
+
+                        <TextBlock Text="Subcategory *"
+                                   Margin="0,9,0,0"/>
+
+                        <ComboBox x:Name="SubCategoryBox"
+                                  SelectionChanged="ItemDetails_Changed"/>
+
+
+                        <TextBlock Text="Tags — select a variation in Overview, then choose any tags"
+                                   FontWeight="Bold"
+                                   TextWrapping="Wrap"
+                                   Margin="0,14,0,4"/>
+
+
+                        <Border BorderBrush="{DynamicResource AppBorderBrush}"
+                                BorderThickness="2"
+                                CornerRadius="5"
+                                Padding="7">
+
+                            <WrapPanel x:Name="TagPanel"/>
+
+                        </Border>
+
+                        <Expander x:Name="SettingsExpander"
+                                  Header="Settings: tags, categories, filename rule"
+                                  Visibility="Collapsed">
+
+                            <StackPanel x:Name="SettingsContent">
+
+                                <TextBlock Text="Tags — one per line"/>
+
+                                <TextBox x:Name="TagsConfig"
+                                         AcceptsReturn="True"
+                                         Height="70"
+                                         LostFocus="Settings_Changed"/>
+
+
+                                <TextBlock Text="Category tree — Category: Subcategory, Subcategory"
+                                           Margin="0,8,0,0"/>
+
+                                <TextBox x:Name="CategoriesConfig"
+                                         AcceptsReturn="True"
+                                         Height="100"
+                                         LostFocus="Settings_Changed"/>
+
+
+                                <TextBlock Text="Filename template"
+                                           Margin="0,8,0,0"/>
+
+                                <TextBox x:Name="FilenameTemplateBox"
+                                         LostFocus="Settings_Changed"/>
+                                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                    <Button Content="Save settings" Click="SettingsSave_Click"/>
+                                    <Button Content="Reset settings" Click="SettingsReset_Click" Margin="6,0,0,0"/>
+                                </StackPanel>
+
+                            </StackPanel>
+
+                        </Expander>
+
+                    </StackPanel>
+                    </ScrollViewer>
+                </DockPanel>
+
+            </GroupBox>
+
+        </Grid>
+
+    </DockPanel>
+
+</Window>

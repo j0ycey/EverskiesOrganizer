@@ -1,0 +1,41 @@
+name: Build Windows executable
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  publish:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Publish self-contained executable
+        run: dotnet publish .\EverskiesOrganizer.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o .\publish
+
+      - name: Create ZIP
+        shell: pwsh
+        run: Compress-Archive -Path .\publish\EverskiesOrganizer.exe -DestinationPath .\EverskiesOrganizer-win-x64.zip
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: EverskiesOrganizer-win-x64
+          path: .\EverskiesOrganizer-win-x64.zip
+
+      - name: Attach ZIP to release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: .\EverskiesOrganizer-win-x64.zip
